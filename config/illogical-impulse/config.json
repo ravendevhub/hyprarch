@@ -369,10 +369,7 @@
     "hoverToReveal": true,
     "ignoredAppRegexes": [],
     "monochromeIcons": true,
-    "pinnedApps": [
-      "org.kde.dolphin",
-      "kitty"
-    ],
+    "pinnedApps": [],
     "pinnedOnStartup": false,
     "showAppsButton": true,
     "showBackground": true,
@@ -445,11 +442,7 @@
     "ui": "auto"
   },
   "launcher": {
-    "pinnedApps": [
-      "org.kde.dolphin",
-      "kitty",
-      "cmake-gui"
-    ]
+    "pinnedApps": []
   },
   "light": {
     "antiFlashbang": {
