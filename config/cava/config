@@ -1,0 +1,32 @@
+# ==============================================================================
+# CAVA - NORDIC & CATPPUCCIN AUDIO VISUALIZER
+# ==============================================================================
+
+[general]
+framerate = 60
+autosens = 1
+bars = 0
+bar_width = 3
+bar_spacing = 1
+
+[input]
+method = pipewire
+source = auto
+
+[output]
+method = ncurses
+style = stereo
+
+[color]
+gradient = 1
+gradient_count = 6
+gradient_color_1 = '#38bdf8'
+gradient_color_2 = '#7dd3fc'
+gradient_color_3 = '#c084fc'
+gradient_color_4 = '#d8b4fe'
+gradient_color_5 = '#f472b6'
+gradient_color_6 = '#f87171'
+
+[smoothing]
+monstercat = 1
+waves = 1

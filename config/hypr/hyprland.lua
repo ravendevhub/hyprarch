@@ -292,6 +292,7 @@ hl.gesture({
 })
 
 
+
 -- Night Light Toggle (Super + Shift + N)
 hl.bind(mod .. " + SHIFT + N", hl.dsp.exec_cmd("bash -c \"if systemctl --user is-active hyprsunset.service >/dev/null 2>&1; then systemctl --user stop hyprsunset.service; notify-send -a 'Night Light' -i night-light-disabled -t 2000 'Night Light OFF' 'Screen back to full brightness'; else systemctl --user start hyprsunset.service; notify-send -a 'Night Light' -i night-light-enabled -t 2000 'Night Light ON' 'Warm amber filter active'; fi\""))
 
