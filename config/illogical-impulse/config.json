@@ -269,14 +269,14 @@
       "leftLayout": [
         "launcherButton",
         "workspaces",
-        "activeWindow"
+        "docktoPanel"
       ],
       "middleLayout": [
         "clockWidget"
       ],
       "rightLayout": [
         "sysTray",
-        "utilButtons",
+        "media",
         "systemIcons",
         "powerButton"
       ]
@@ -500,7 +500,7 @@
     "timeout": 1000
   },
   "osk": {
-    "layout": "English",
+    "layout": "Burmese",
     "pinnedOnStartup": false
   },
   "overlay": {
