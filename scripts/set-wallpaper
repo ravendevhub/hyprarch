@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+IMG="${1}"
+if [ -z "$IMG" ] || [ ! -f "$IMG" ]; then
+    echo "Usage: set-wallpaper /path/to/image.jpg"
+    exit 1
+fi
+
+ln -sf "$IMG" ~/.local/share/backgrounds/hyprarch/current
+awww img "$IMG" 2>/dev/null || true
+bash ~/.config/quickshell/end4-pC/scripts/colors/switchwall.sh "$IMG"
+notify-send -a "Wallpaper" -i "$IMG" "Wallpaper Updated" "Applied $(basename "$IMG") and regenerated Material colors."
