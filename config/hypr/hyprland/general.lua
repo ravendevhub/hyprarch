@@ -8,8 +8,8 @@ hl.monitor({
 
 hl.gesture({
     fingers = 3,
-    direction = "swipe",
-    action = "move"
+    direction = "horizontal",
+    action = "workspace"
 })
 hl.gesture({
     fingers = 3,
