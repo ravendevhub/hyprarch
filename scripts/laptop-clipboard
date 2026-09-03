@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Select from cliphist using wofi
+SELECTION=$(cliphist list | wofi --dmenu --prompt "Clipboard History" --width 650 --lines 12 2>/dev/null || true)
+if [[ -n "$SELECTION" ]]; then
+    printf '%s' "$SELECTION" | cliphist decode | wl-copy
+    notify-send -a "Clipboard" -i edit-paste -t 1500 "Copied to Clipboard" "Ready to Ctrl + V paste" 2>/dev/null || true
+fi

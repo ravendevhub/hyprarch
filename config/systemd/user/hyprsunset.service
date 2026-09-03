@@ -1,0 +1,15 @@
+[Unit]
+Description=Hyprland Night Light / Blue Light Filter
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Run at 3500K warm amber color temperature (active at all times - use hyprland keybind to toggle)
+ExecStart=/usr/bin/hyprsunset -t 3500
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=5
+
+[Install]
+WantedBy=graphical-session.target

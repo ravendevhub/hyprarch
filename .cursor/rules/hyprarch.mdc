@@ -1,0 +1,6 @@
+---
+description: HyprArch public kickstart only
+alwaysApply: true
+---
+
+This directory is the **published** kickstart (github.com/ravendevhub/hyprarch), not the live Parallels guest. Follow `AGENTS.md`, `docs/STACK.md`, and `docs/AGENT.md`. Do not install GNOME, GDM, Omarchy, or DMS. If the parent folder is Desktop `workspace/`, ongoing guest work is `../arch-hypr-config/`. niri and mango are optional later sessions: `docs/OPTIONAL-SESSIONS.md` (hints only; this repo does not ship those configs).

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ACTION="${1:-toggle}"
+
+if [[ "$ACTION" == "up" ]]; then
+    wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+elif [[ "$ACTION" == "down" ]]; then
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+elif [[ "$ACTION" == "mute" ]]; then
+    wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+elif [[ "$ACTION" == "mic" ]]; then
+    wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+    exit 0
+fi
+
+# Get current volume
+VOL_STR=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || echo "Volume: 0.00")
+if echo "$VOL_STR" | grep -q "MUTED"; then
+    notify-send -a "Volume" -i audio-volume-muted -h string:synchronous:volume -t 1200 "Muted"
+else
+    VAL=$(echo "$VOL_STR" | awk '{print int($2 * 100)}')
+    ICON="audio-volume-high"
+    [[ $VAL -lt 60 ]] && ICON="audio-volume-medium"
+    [[ $VAL -lt 30 ]] && ICON="audio-volume-low"
+    notify-send -a "Volume" -i "$ICON" -h int:value:"$VAL" -h string:synchronous:volume -t 1200 "Volume: ${VAL}%"
+fi

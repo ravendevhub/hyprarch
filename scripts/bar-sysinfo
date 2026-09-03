@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""
+bar-sysinfo: Fast system stats for Quickshell bar
+Reads /proc and sysfs directly. Outputs JSON.
+Usage: bar-sysinfo [--watch] (--watch loops every 2s)
+"""
+import json, time, os, sys
+
+def cpu_usage():
+    """Read CPU usage by comparing two /proc/stat snapshots."""
+    def read_stat():
+        with open("/proc/stat") as f:
+            line = f.readline()
+        parts = list(map(int, line.split()[1:8]))
+        total = sum(parts)
+        idle  = parts[3]
+        return total, idle
+    t1, i1 = read_stat()
+    time.sleep(0.3)
+    t2, i2 = read_stat()
+    dt = t2 - t1
+    if dt == 0: return 0
+    return round((1 - (i2 - i1) / dt) * 100)
+
+def cpu_temp():
+    """Get CPU Package temperature."""
+    for base in ["/sys/class/hwmon"]:
+        for d in os.listdir(base):
+            p = f"{base}/{d}"
+            try:
+                name = open(f"{p}/name").read().strip()
+            except: continue
+            if name == "coretemp":
+                # Read Package id 0
+                for i in range(1, 20):
+                    lp = f"{p}/temp{i}_label"
+                    vp = f"{p}/temp{i}_input"
+                    try:
+                        label = open(lp).read().strip()
+                        if "Package" in label:
+                            return round(int(open(vp).read().strip()) / 1000)
+                    except: continue
+    return None
+
+def ram_usage():
+    """Get RAM usage."""
+    data = {}
+    with open("/proc/meminfo") as f:
+        for line in f:
+            k, v = line.split(":")
+            data[k.strip()] = int(v.strip().split()[0])
+    total = data["MemTotal"]
+    avail = data["MemAvailable"]
+    used  = total - avail
+    pct   = round(used / total * 100)
+    return {"used_mb": used // 1024, "total_mb": total // 1024, "pct": pct}
+
+def gpu_stats():
+    """NVIDIA GPU: utilization, temp, VRAM."""
+    try:
+        import subprocess
+        r = subprocess.run(
+            ["nvidia-smi", "--query-gpu=utilization.gpu,temperature.gpu,memory.used,memory.total",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=1
+        )
+        if r.returncode == 0:
+            parts = [x.strip() for x in r.stdout.strip().split(",")]
+            return {
+                "util":     int(parts[0]),
+                "temp":     int(parts[1]),
+                "vram_mb":  int(parts[2]),
+                "vram_total": int(parts[3]),
+            }
+    except: pass
+    return None
+
+def net_speed(iface=None):
+    """Network Rx/Tx speed (KB/s) — computed over 0.3s sample."""
+    def read_net():
+        stats = {}
+        with open("/proc/net/dev") as f:
+            for line in f:
+                line = line.strip()
+                if ":" not in line: continue
+                name, vals = line.split(":", 1)
+                nums = list(map(int, vals.split()))
+                stats[name.strip()] = (nums[0], nums[8])  # (rx_bytes, tx_bytes)
+        return stats
+    
+    if iface is None:
+        # Auto-pick first wireless or ethernet
+        import subprocess
+        try:
+            r = subprocess.run(["ip", "route", "get", "8.8.8.8"], capture_output=True, text=True, timeout=1)
+            for tok in r.stdout.split():
+                if tok == "dev":
+                    iface = r.stdout.split().index(tok)
+                    iface = r.stdout.split()[iface + 1]
+                    break
+        except: pass
+    
+    s1 = read_net()
+    time.sleep(0.3)
+    s2 = read_net()
+    
+    rx_kbs, tx_kbs = 0, 0
+    for name in s2:
+        if iface and name != iface: continue
+        if name in s1:
+            rx = (s2[name][0] - s1[name][0]) / 0.3 / 1024
+            tx = (s2[name][1] - s1[name][1]) / 0.3 / 1024
+            rx_kbs += rx
+            tx_kbs += tx
+    
+    def fmt(kbs):
+        if kbs >= 1024: return f"{kbs/1024:.1f} MB/s"
+        return f"{kbs:.0f} KB/s"
+    
+    return {"rx": fmt(max(0, rx_kbs)), "tx": fmt(max(0, tx_kbs)),
+            "rx_kbs": round(max(0, rx_kbs)), "tx_kbs": round(max(0, tx_kbs))}
+
+def get_all():
+    ram   = ram_usage()
+    gpu   = gpu_stats()
+    net   = net_speed()
+    temp  = cpu_temp()
+    cpu   = cpu_usage()
+    return {
+        "cpu_pct":  cpu,
+        "cpu_temp": temp,
+        "ram_pct":  ram["pct"],
+        "ram_used": ram["used_mb"],
+        "ram_total": ram["total_mb"],
+        "gpu_util":  gpu["util"]  if gpu else None,
+        "gpu_temp":  gpu["temp"]  if gpu else None,
+        "gpu_vram":  gpu["vram_mb"] if gpu else None,
+        "gpu_vram_total": gpu["vram_total"] if gpu else None,
+        "net_rx":   net["rx"],
+        "net_tx":   net["tx"],
+    }
+
+if __name__ == "__main__":
+    watch = "--watch" in sys.argv
+    while True:
+        data = get_all()
+        print(json.dumps(data), flush=True)
+        if not watch: break
+        time.sleep(2)

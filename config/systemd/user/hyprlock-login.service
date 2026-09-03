@@ -1,0 +1,13 @@
+[Unit]
+Description=Lock screen on boot/login
+PartOf=graphical-session.target
+After=graphical-session.target wayland-wm@hyprland.desktop.service hyprarch-wallpaper.service hyprarch-shell.service
+ConditionEnvironment=XDG_CURRENT_DESKTOP=Hyprland
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/hyprlock --immediate-render
+Restart=no
+
+[Install]
+WantedBy=graphical-session.target

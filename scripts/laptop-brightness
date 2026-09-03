@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEV_DIR="/sys/class/backlight/intel_backlight"
+[[ -d "$DEV_DIR" ]] || exit 0
+
+MAX=$(cat "$DEV_DIR/max_brightness")
+CURRENT=$(cat "$DEV_DIR/brightness")
+STEP=$(( MAX / 20 )) # 5% steps
+
+ACTION="${1:-up}"
+
+if [[ "$ACTION" == "up" ]]; then
+    NEW=$(( CURRENT + STEP ))
+    [[ $NEW -gt $MAX ]] && NEW=$MAX
+elif [[ "$ACTION" == "down" ]]; then
+    NEW=$(( CURRENT - STEP ))
+    MIN=$(( MAX / 50 )) # 2% min
+    [[ $NEW -lt $MIN ]] && NEW=$MIN
+fi
+
+busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
+    org.freedesktop.login1.Session SetBrightness ssu "backlight" "intel_backlight" "$NEW" >/dev/null 2>&1 || true
+
+PERCENT=$(( NEW * 100 / MAX ))
+notify-send -a "Brightness" -i display-brightness-symbolic -h int:value:"$PERCENT" -h string:synchronous:brightness -t 1200 "Brightness: ${PERCENT}%"

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MODE="${1:-area_clipboard}"
+
+if [[ "$MODE" == "area_clipboard" ]]; then
+    # Interactive area selection directly to clipboard (NO DISK FILE SAVED)
+    GEOM=$(slurp 2>/dev/null || true)
+    [[ -z "$GEOM" ]] && exit 0
+    grim -g "$GEOM" - | wl-copy --type image/png
+    notify-send -a "Screenshot" -i edit-paste -t 2000 "Screenshot Copied!" "Ready to Ctrl + V paste (Not saved to disk)" 2>/dev/null || true
+
+elif [[ "$MODE" == "full_clipboard" ]]; then
+    # Full screen directly to clipboard (NO DISK FILE SAVED)
+    grim - | wl-copy --type image/png
+    notify-send -a "Screenshot" -i edit-paste -t 2000 "Fullscreen Copied!" "Ready to Ctrl + V paste" 2>/dev/null || true
+
+elif [[ "$MODE" == "save" ]]; then
+    # Explicit save to file
+    DIR="$HOME/Pictures/Screenshots"
+    mkdir -p "$DIR"
+    FILE="$DIR/Screenshot_$(date +%Y%m%d_%H%M%S).png"
+    GEOM=$(slurp 2>/dev/null || true)
+    [[ -z "$GEOM" ]] && exit 0
+    grim -g "$GEOM" "$FILE"
+    wl-copy < "$FILE"
+    notify-send -a "Screenshot" -i "$FILE" -t 3000 "Saved & Copied" "$FILE" 2>/dev/null || true
+fi

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MENU=$(printf "1. 📶 Wi-Fi & Network Settings\n2. 🎧 Bluetooth Device Manager\n3. 🔊 Volume & Audio Mixer\n4. 🖼️ Change Wallpaper\n5. ⌨️ View Keybindings" | wofi --dmenu --prompt "Quick Settings" --width 450 --lines 6 2>/dev/null || true)
+
+case "$MENU" in
+    *"Wi-Fi"*)
+        nm-connection-editor &
+        ;;
+    *"Bluetooth"*)
+        blueman-manager &
+        ;;
+    *"Volume"*)
+        pavucontrol &
+        ;;
+    *"Wallpaper"*)
+        qs -c hyprarch ipc call wallpaper openDialog 2>/dev/null || true &
+        ;;
+    *"Keybindings"*)
+        qs -c hyprarch ipc call keybinds toggle 2>/dev/null || true &
+        ;;
+esac
